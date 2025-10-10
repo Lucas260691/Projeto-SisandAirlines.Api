@@ -361,3 +361,27 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# =========================================
+# Custom extras for SisandAirlines project
+# =========================================
+
+# Environment and settings
+.env
+*.env
+appsettings.*.json
+
+# Angular / Node
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.env
+
+# Logs
+*.log
+*.pid
+*.tmp
+
+# Docker
+docker-compose.override.yml
+.docker/
