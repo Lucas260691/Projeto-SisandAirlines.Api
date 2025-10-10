@@ -385,3 +385,6 @@ frontend/.env
 # Docker
 docker-compose.override.yml
 .docker/
+
+# PostgreSQL Docker data
+database/data/
