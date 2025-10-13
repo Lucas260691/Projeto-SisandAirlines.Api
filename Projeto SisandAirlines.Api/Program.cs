@@ -1,36 +1,47 @@
 ﻿using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.IdentityModel.Tokens;
+using SisandAirlines.Application.Services;
+using SisandAirlines.Domain.Interfaces;
+using SisandAirlines.Infrastructure.UnitOfWork;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // =======================================================
-// 1️⃣ Carrega variáveis do arquivo .env (ambiente local)
+// 1️⃣ Carrega configurações (appsettings + .env + variáveis)
 // =======================================================
-Env.Load();
+Env.Load(); // .env local
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables(); // permite override via Docker/CI/CD
 
 // =======================================================
-// 2️⃣ Configura a conexão com o banco de dados PostgreSQL
+// 2️⃣ Monta a string de conexão do PostgreSQL
 // =======================================================
-var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-var dbPort = Environment.GetEnvironmentVariable("DB_PORT");
-var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-var dbUser = Environment.GetEnvironmentVariable("DB_USER");
-var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+var dbHost = builder.Configuration["DB_HOST"] ?? "localhost";
+var dbPort = builder.Configuration["DB_PORT"] ?? "5432";
+var dbName = builder.Configuration["DB_NAME"] ?? "sisand_airlines";
+var dbUser = builder.Configuration["DB_USER"] ?? "postgres";
+var dbPassword = builder.Configuration["DB_PASSWORD"] ?? "123456";
 
 var connectionString =
     $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
 
-builder.Services.AddSingleton(connectionString);
+Console.WriteLine($"✅ Conectando em: {connectionString}");
 
 // =======================================================
-// 3️⃣ Configuração básica do JWT (ainda sem middleware de login)
+// 3️⃣ Registra serviços de infraestrutura e aplicação
 // =======================================================
-var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "default_secret_key";
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "SisandAirlines";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "SisandAirlinesUsers";
+builder.Services.AddScoped<IUnitOfWork>(_ => new UnitOfWork(connectionString));
+builder.Services.AddScoped<FlightService>();
+
+// =======================================================
+// 4️⃣ Configura autenticação JWT
+// =======================================================
+var jwtSecret = builder.Configuration["JWT_SECRET"] ?? "default_secret_key";
+var jwtIssuer = builder.Configuration["JWT_ISSUER"] ?? "SisandAirlines";
+var jwtAudience = builder.Configuration["JWT_AUDIENCE"] ?? "SisandAirlinesUsers";
 
 builder.Services
     .AddAuthentication(options =>
@@ -53,12 +64,10 @@ builder.Services
     });
 
 // =======================================================
-// 4️⃣ Configuração padrão de serviços
+// 5️⃣ Configurações padrão e Swagger
 // =======================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-// Configura Swagger tradicional
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -69,26 +78,23 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// =======================================================
+// 6️⃣ Monta o pipeline HTTP
+// =======================================================
 var app = builder.Build();
 
-// =======================================================
-// 5️⃣ Configuração do pipeline HTTP
-// =======================================================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Sisand Airlines API v1");
-        options.RoutePrefix = "swagger"; 
+        options.RoutePrefix = "swagger";
     });
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
