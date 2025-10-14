@@ -7,6 +7,7 @@ namespace SisandAirlines.Domain.Interfaces
     {
         IFlightRepository Flights { get; }
         IBookingRepository Bookings { get; }
+        ICustomerRepository Customers { get; }
 
         //Task InitializeAsync();
 
