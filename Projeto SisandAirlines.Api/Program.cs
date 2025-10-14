@@ -36,6 +36,7 @@ Console.WriteLine($"✅ Conectando em: {connectionString}");
 builder.Services.AddScoped<IUnitOfWork>(_ => new UnitOfWork(connectionString));
 builder.Services.AddScoped<FlightService>();
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddScoped<CustomerService>();
 
 // =======================================================
 // 4️⃣ Configura autenticação JWT

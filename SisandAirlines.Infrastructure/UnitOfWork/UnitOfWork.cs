@@ -13,6 +13,7 @@ namespace SisandAirlines.Infrastructure.UnitOfWork
         public IFlightRepository Flights { get; private set; } = null!;
         public IBookingRepository Bookings { get; private set; } = null!;
 
+        public ICustomerRepository Customers { get; private set; } = null!;
         public UnitOfWork(string connectionString)
         {
             Console.WriteLine("🟢 Criando UnitOfWork...");
@@ -24,6 +25,7 @@ namespace SisandAirlines.Infrastructure.UnitOfWork
 
             Flights = new FlightRepository(_connection, _transaction);
             Bookings = new BookingRepository(_connection, _transaction);
+            Customers = new CustomerRepository(_connection, _transaction);
 
             Console.WriteLine($"✅ Repositórios inicializados: Flights={Flights != null}, Bookings={Bookings != null}");
         }
