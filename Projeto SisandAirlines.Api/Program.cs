@@ -37,6 +37,7 @@ builder.Services.AddScoped<IUnitOfWork>(_ => new UnitOfWork(connectionString));
 builder.Services.AddScoped<FlightService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<AuthService>();
 
 // =======================================================
 // 4️⃣ Configura autenticação JWT
