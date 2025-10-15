@@ -12,13 +12,34 @@ namespace SisandAirlines.Infrastructure.Repositories
 
         public override async Task<IEnumerable<Customer>> GetAllAsync()
         {
-            const string sql = "SELECT * FROM customer;";
+            const string sql = @"
+                SELECT 
+                    id, 
+                    full_name AS FullName, 
+                    email AS Email, 
+                    cpf AS Cpf, 
+                    password_hash AS PasswordHash, 
+                    birth_date AS BirthDate, 
+                    created_at AS CreatedAt
+                FROM customer;
+            ";
             return await _connection.QueryAsync<Customer>(sql, transaction: _transaction);
         }
 
         public override async Task<Customer?> GetByIdAsync(int id)
         {
-            const string sql = "SELECT * FROM customer WHERE id = @id;";
+            const string sql = @"
+                SELECT 
+                    id, 
+                    full_name AS FullName, 
+                    email AS Email, 
+                    cpf AS Cpf, 
+                    password_hash AS PasswordHash, 
+                    birth_date AS BirthDate, 
+                    created_at AS CreatedAt
+                FROM customer 
+                WHERE id = @id;
+            ";
             return await _connection.QueryFirstOrDefaultAsync<Customer>(sql, new { id }, transaction: _transaction);
         }
 
@@ -26,7 +47,7 @@ namespace SisandAirlines.Infrastructure.Repositories
         {
             const string sql = @"
                 INSERT INTO customer (full_name, email, cpf, password_hash, birth_date)
-                VALUES (@FullName, @Email, @cpf, @PasswordHash, @BirthDate);
+                VALUES (@FullName, @Email, @Cpf, @PasswordHash, @BirthDate);
             ";
             await _connection.ExecuteAsync(sql, entity, transaction: _transaction);
         }
@@ -49,8 +70,19 @@ namespace SisandAirlines.Infrastructure.Repositories
 
         public async Task<Customer?> GetByEmailAsync(string email)
         {
-            const string sql = "SELECT * FROM customer WHERE email = @email;";
-            return await _connection.QueryFirstOrDefaultAsync<Customer>(sql, new { email }, transaction: _transaction);
+            const string sql = @"
+                SELECT 
+                    id, 
+                    full_name AS FullName, 
+                    email AS Email, 
+                    cpf AS Cpf, 
+                    password_hash AS PasswordHash, 
+                    birth_date AS BirthDate, 
+                    created_at AS CreatedAt
+                FROM customer 
+                WHERE email = @Email;
+            ";
+            return await _connection.QueryFirstOrDefaultAsync<Customer>(sql, new { Email = email }, transaction: _transaction);
         }
     }
 }

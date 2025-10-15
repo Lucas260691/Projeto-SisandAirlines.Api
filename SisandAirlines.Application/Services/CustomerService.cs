@@ -2,6 +2,7 @@
 using SisandAirlines.Domain.Entities;
 using SisandAirlines.Domain.Interfaces;
 using System.Security.Cryptography;
+using SisandAirlines.Application.Utils;
 using System.Text;
 
 namespace SisandAirlines.Application.Services
@@ -22,14 +23,12 @@ namespace SisandAirlines.Application.Services
             if (existing != null)
                 throw new InvalidOperationException("E-mail já cadastrado.");
 
-            var hash = HashPassword(request.Password);
-
             var entity = new Customer
             {
                 FullName = request.FullName,
                 Email = request.Email,
                 Cpf = request.Cpf,
-                PasswordHash = hash,
+                PasswordHash = PasswordHasher.Hash(request.Password),
                 BirthDate = request.BirthDate,
                 CreatedAt = DateTime.UtcNow
             };
@@ -59,11 +58,5 @@ namespace SisandAirlines.Application.Services
             });
         }
 
-        private static string HashPassword(string password)
-        {
-            using var sha = SHA256.Create();
-            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
-        }
     }
 }
