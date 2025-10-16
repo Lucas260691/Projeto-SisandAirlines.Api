@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace SisandAirlines.Domain.Interfaces
@@ -8,6 +9,10 @@ namespace SisandAirlines.Domain.Interfaces
         IFlightRepository Flights { get; }
         IBookingRepository Bookings { get; }
         ICustomerRepository Customers { get; }
+        IPaymentRepository Payments { get; }
+
+        IDbConnection Connection { get; }
+        IDbTransaction? Transaction { get; }
 
         //Task InitializeAsync();
 

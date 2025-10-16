@@ -38,6 +38,7 @@ builder.Services.AddScoped<FlightService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<PaymentService>();
 
 // =======================================================
 // 4️⃣ Configura autenticação JWT

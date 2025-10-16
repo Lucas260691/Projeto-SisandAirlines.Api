@@ -12,12 +12,13 @@ namespace SisandAirlines.Infrastructure.UnitOfWork
         private bool _disposed;
         public IFlightRepository Flights { get; private set; } = null!;
         public IBookingRepository Bookings { get; private set; } = null!;
-
         public ICustomerRepository Customers { get; private set; } = null!;
+        public IPaymentRepository Payments { get; private set; } = null!;
+        public IDbConnection Connection => _connection;
+        public IDbTransaction? Transaction => _transaction;
         public UnitOfWork(string connectionString)
         {
-            Console.WriteLine("🟢 Criando UnitOfWork...");
-
+            
             _connection = new NpgsqlConnection(connectionString);
 
             _connection.Open();
@@ -26,8 +27,7 @@ namespace SisandAirlines.Infrastructure.UnitOfWork
             Flights = new FlightRepository(_connection, _transaction);
             Bookings = new BookingRepository(_connection, _transaction);
             Customers = new CustomerRepository(_connection, _transaction);
-
-            Console.WriteLine($"✅ Repositórios inicializados: Flights={Flights != null}, Bookings={Bookings != null}");
+            Payments = new PaymentRepository(_connection, _transaction);
         }
         
         //public async Task InitializeAsync()
