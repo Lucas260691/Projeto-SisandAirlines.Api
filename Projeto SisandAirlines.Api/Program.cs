@@ -1,6 +1,7 @@
 ﻿using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using SisandAirlines.Application.Services;
 using SisandAirlines.Domain.Interfaces;
 using SisandAirlines.Infrastructure.UnitOfWork;
@@ -9,15 +10,16 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // =======================================================
-// 1️⃣ Carrega configurações (appsettings + .env + variáveis)
+// 1️⃣ Carrega configurações (appsettings + .env + variáveis de ambiente)
 // =======================================================
-Env.Load(); // .env local
+Env.Load(); // Lê variáveis do .env local
+
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables(); // permite override via Docker/CI/CD
+    .AddEnvironmentVariables(); // Permite sobrescrever configs via Docker/CI/CD
 
 // =======================================================
-// 2️⃣ Monta a string de conexão do PostgreSQL
+// 2️⃣ Configuração de conexão com PostgreSQL
 // =======================================================
 var dbHost = builder.Configuration["DB_HOST"] ?? "localhost";
 var dbPort = builder.Configuration["DB_PORT"] ?? "5432";
@@ -25,13 +27,12 @@ var dbName = builder.Configuration["DB_NAME"] ?? "sisand_airlines";
 var dbUser = builder.Configuration["DB_USER"] ?? "postgres";
 var dbPassword = builder.Configuration["DB_PASSWORD"] ?? "123456";
 
-var connectionString =
-    $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
+var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
 
-Console.WriteLine($"✅ Conectando em: {connectionString}");
+Console.WriteLine($"✅ Conectando ao banco: {connectionString}");
 
 // =======================================================
-// 3️⃣ Registra serviços de infraestrutura e aplicação
+// 3️⃣ Serviços de infraestrutura e aplicação
 // =======================================================
 builder.Services.AddScoped<IUnitOfWork>(_ => new UnitOfWork(connectionString));
 builder.Services.AddScoped<FlightService>();
@@ -41,7 +42,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<PaymentService>();
 
 // =======================================================
-// 4️⃣ Configura autenticação JWT
+// 4️⃣ Configuração do JWT
 // =======================================================
 var jwtSecret = builder.Configuration["JWT_SECRET"] ?? "default_secret_key";
 var jwtIssuer = builder.Configuration["JWT_ISSUER"] ?? "SisandAirlines";
@@ -68,13 +69,32 @@ builder.Services
     });
 
 // =======================================================
-// 5️⃣ Configurações padrão e Swagger
+// 5️⃣ Configuração de CORS dinâmica
+// =======================================================
+var corsOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? new[] { "http://localhost:4200" };
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins(corsOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+// =======================================================
+// 6️⃣ Swagger e Controllers
 // =======================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Sisand Airlines API",
         Version = "v1",
@@ -83,9 +103,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // =======================================================
-// 6️⃣ Monta o pipeline HTTP
+// 7️⃣ Construção do pipeline HTTP
 // =======================================================
 var app = builder.Build();
+
+app.UseCors("AllowFrontend"); // 🔥 Aplica CORS antes da autenticação
 
 if (app.Environment.IsDevelopment())
 {
@@ -100,5 +122,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();
