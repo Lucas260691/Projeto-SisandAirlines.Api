@@ -5,7 +5,7 @@ using Dapper;
 
 namespace SisandAirlines.Application.Services
 {
-    public class FlightService
+    public class FlightService : IFlightScheduler
     {
         private readonly IUnitOfWork _uow;
 
