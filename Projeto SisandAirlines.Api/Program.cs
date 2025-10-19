@@ -35,12 +35,13 @@ Console.WriteLine($"✅ Conectando ao banco: {connectionString}");
 // 3️⃣ Serviços de infraestrutura e aplicação
 // =======================================================
 builder.Services.AddScoped<IUnitOfWork>(_ => new UnitOfWork(connectionString));
+builder.Services.AddScoped<IFlightScheduler, FlightService>();
 builder.Services.AddScoped<FlightService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<PaymentService>();
-
+builder.Services.AddHostedService<SisandAirlines.Infrastructure.BackgroundJobs.FlightSchedulerJob>();
 // =======================================================
 // 4️⃣ Configuração do JWT
 // =======================================================
@@ -117,16 +118,6 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Sisand Airlines API v1");
         options.RoutePrefix = "swagger";
     });
-
-    using (var scope = app.Services.CreateScope())
-    {
-        var flightService = scope.ServiceProvider.GetRequiredService<FlightService>();
-
-        Console.WriteLine("🚀 Iniciando geração manual de voos...(janela 60 dias)");
-        await flightService.PurgeOldFlightsAsync();
-        await flightService.GenerateFutureFlightsAsync(60);
-        Console.WriteLine("✅ Geração concluída com sucesso!");
-    }
 }
 
 app.UseHttpsRedirection();
