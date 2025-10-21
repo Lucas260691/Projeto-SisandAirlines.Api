@@ -10,5 +10,6 @@
         public DateTime ArrivalAt { get; set; }
         public string FareClass { get; set; } = string.Empty;
         public decimal BaseFare { get; set; }
+        public List<FareAvailabilityDto> Classes { get; set; } = new();
     }
 }
