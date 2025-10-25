@@ -5,7 +5,7 @@ using SisandAirlines.Application.Services;
 namespace SisandAirlines.Api.Controllers
 {
     [ApiController]
-    [Route("payments")]
+    [Route("api/[controller]")]
     public class PaymentsController : ControllerBase
     {
         private readonly PaymentService _service;

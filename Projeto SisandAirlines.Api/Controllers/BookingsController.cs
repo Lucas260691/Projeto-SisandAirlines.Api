@@ -5,7 +5,7 @@ using SisandAirlines.Application.Services;
 namespace SisandAirlines.Api.Controllers
 {
     [ApiController]
-    [Route("bookings")]
+    [Route("api/[controller]")]
     public class BookingsController : ControllerBase
     {
         private readonly BookingService _service;

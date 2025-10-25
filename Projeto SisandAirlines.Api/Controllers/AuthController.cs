@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SisandAirlines.Application.DTOs;
 using SisandAirlines.Application.Services;
 
 namespace SisandAirlines.Api.Controllers
 {
     [ApiController]
-    [Route("auth")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -16,6 +17,7 @@ namespace SisandAirlines.Api.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
