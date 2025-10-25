@@ -108,7 +108,6 @@ builder.Services.AddSwaggerGen(options =>
 // =======================================================
 var app = builder.Build();
 
-app.UseCors("AllowFrontend"); // 🔥 Aplica CORS antes da autenticação
 
 if (app.Environment.IsDevelopment())
 {
@@ -119,6 +118,7 @@ if (app.Environment.IsDevelopment())
         options.RoutePrefix = "swagger";
     });
 }
+app.UseCors("AllowFrontend"); // 🔥 Aplica CORS antes da autenticação
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
