@@ -136,7 +136,7 @@ namespace SisandAirlines.Application.Services
 
             Console.WriteLine($"✈️ {newFlights.Count} voos gerados de {startDate:dd/MM} até {targetDate:dd/MM}");
         }
-
+        
         // ================================================================
         // 3️⃣ Limpeza de voos antigos
         // ================================================================

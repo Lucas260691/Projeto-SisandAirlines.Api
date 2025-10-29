@@ -6,12 +6,13 @@ namespace SisandAirlines.Infrastructure.BackgroundJobs
 {
     /// <summary>
     /// Hosted Service responsável por manter a agenda de voos futura atualizada.
-    /// Roda diariamente às 00:00 (UTC-3), removendo voos antigos e gerando novos até 60 dias à frente.
+    /// Executa diariamente à meia-noite (horário de Brasília, UTC-3),
+    /// removendo voos antigos e gerando novos até 60 dias à frente.
     /// </summary>
     public class FlightSchedulerJob : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly TimeSpan _interval = TimeSpan.FromHours(24); // executa 1x a cada 24h
+        private readonly TimeZoneInfo _brTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time"); // Horário de Brasília
 
         public FlightSchedulerJob(IServiceProvider serviceProvider)
         {
@@ -27,23 +28,30 @@ namespace SisandAirlines.Infrastructure.BackgroundJobs
             {
                 try
                 {
+                    var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _brTimeZone);
+                    Console.WriteLine($"🕛 [FlightSchedulerJob] Iniciando atualização de voos - {now:dd/MM/yyyy HH:mm}");
+
                     using var scope = _serviceProvider.CreateScope();
                     var scheduler = scope.ServiceProvider.GetRequiredService<IFlightScheduler>();
 
-                    Console.WriteLine($"🕛 [FlightSchedulerJob] Iniciando atualização de voos - {DateTime.Now:dd/MM/yyyy HH:mm}");
-
                     await scheduler.PurgeOldFlightsAsync();
                     await scheduler.GenerateFutureFlightsAsync(60);
-                    
-                    Console.WriteLine($"✅ [FlightSchedulerJob] Agenda atualizada com sucesso - {DateTime.Now:dd/MM/yyyy HH:mm}");
+
+                    var finished = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _brTimeZone);
+                    Console.WriteLine($"✅ [FlightSchedulerJob] Agenda atualizada com sucesso - {finished:dd/MM/yyyy HH:mm}");
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"❌ [FlightSchedulerJob] Erro durante execução: {ex.Message}");
                 }
 
-                // Aguarda até o próximo ciclo (24h)
-                await Task.Delay(_interval, stoppingToken);
+                // Calcula o tempo até a próxima meia-noite local
+                var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _brTimeZone);
+                var nextMidnight = nowLocal.Date.AddDays(1);
+                var delay = nextMidnight - nowLocal;
+
+                Console.WriteLine($"⏰ [FlightSchedulerJob] Próxima execução programada para: {nextMidnight:dd/MM/yyyy HH:mm}");
+                await Task.Delay(delay, stoppingToken);
             }
         }
     }
